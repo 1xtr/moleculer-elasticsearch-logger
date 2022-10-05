@@ -1,0 +1,50 @@
+{
+  "name": "@1xtr/moleculer-elasticsearch-logger",
+  "version": "1.0.0",
+  "description": "Custom MoleculerJS logger for send logs to Elasticsearch directly",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1xtr/moleculer-elasticsearch-logger.git"
+  },
+  "keywords": [
+    "moleculer",
+    "elasticsearch",
+    "directly",
+    "logger"
+  ],
+  "author": "Aleksei Anisimov <i@trendco.dev>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/1xtr/moleculer-elasticsearch-logger/issues"
+  },
+  "homepage": "https://github.com/1xtr/moleculer-elasticsearch-logger#readme",
+  "dependencies": {
+    "@elastic/elasticsearch": "^8.4.0",
+    "lodash": "^4.17.21",
+    "moleculer": "^0.14.8"
+  },
+  "devDependencies": {
+    "eslint": "^8.22.0",
+    "prettier": "^2.7.1"
+  },
+  "prettier": {
+    "semi": false,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 100
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "extends": [
+      "eslint:recommended"
+    ]
+  }
+}
