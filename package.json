@@ -4,7 +4,9 @@
   "description": "Custom MoleculerJS logger for send logs to Elasticsearch directly",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "patch": "npm version patch",
+    "minor": "npm version minor",
+    "lint": "eslint"
   },
   "repository": {
     "type": "git",
