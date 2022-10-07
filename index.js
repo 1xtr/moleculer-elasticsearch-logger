@@ -17,9 +17,9 @@
  */
 
 const _ = require('lodash')
-const {Client} = require('@elastic/elasticsearch')
+const { Client } = require('@elastic/elasticsearch')
 const BaseLogger = require('moleculer').Loggers.Base
-const {hostname} = require('os')
+const { hostname } = require('os')
 
 fetch.Promise = Promise
 const isObject = (o) => o !== null && typeof o === 'object' && !(o instanceof String)
@@ -46,7 +46,7 @@ class ElasticLogger extends BaseLogger {
    */
   constructor(opts = {}) {
     super(opts)
-    
+
     /**
      * @type {ElasticLoggerOptions}
      */
@@ -64,33 +64,33 @@ class ElasticLogger extends BaseLogger {
       hostname: hostname(),
       objectPrinter: null,
       interval: 5 * 1000,
-      excludeModules: []
+      excludeModules: [],
     }
-    
+
     this.opts = _.defaultsDeep(this.opts, defaultOptions)
     this.queue = []
     this.timer = null
     this.client = {}
   }
-  
+
   /**
    * Initialize logger.
    * @param {LoggerFactory} loggerFactory
    */
   init(loggerFactory) {
     super.init(loggerFactory)
-    
+
     this.objectPrinter = this.opts.objectPrinter
       ? this.opts.objectPrinter
       : (o) => JSON.stringify(o, null, 2)
-    
+
     if (this.opts.interval > 0) {
       this.timer = setInterval(() => this.flush(), this.opts.interval)
       this.timer.unref()
     }
     this.client = new Client(this.opts.clientOptions)
   }
-  
+
   /**
    * Stopping logger
    */
@@ -101,17 +101,17 @@ class ElasticLogger extends BaseLogger {
     }
     return this.flush()
   }
-  
+
   /**
    * Generate a new log handler.
    * @param {object} bindings
    */
   getLogHandler(bindings) {
     if (this.opts.excludeModules.includes(bindings.mod)) return null
-    
+
     const level = bindings ? this.getLogLevel(bindings.mod) : null
     if (!level) return null
-    
+
     const printArgs = (args) => {
       return args.map((p) => {
         if (isObject(p) || Array.isArray(p)) return this.objectPrinter(p)
@@ -120,11 +120,11 @@ class ElasticLogger extends BaseLogger {
       })
     }
     const levelIdx = BaseLogger.LEVELS.indexOf(level)
-    
+
     return (type, args) => {
       const typeIdx = BaseLogger.LEVELS.indexOf(type)
       if (typeIdx > levelIdx) return
-      
+
       this.queue.push({
         ts: new Date(),
         level: type,
@@ -134,7 +134,7 @@ class ElasticLogger extends BaseLogger {
       if (!this.opts.interval) this.flush()
     }
   }
-  
+
   /**
    * Flush queued log entries to ElasticLogger.
    */
@@ -142,9 +142,14 @@ class ElasticLogger extends BaseLogger {
     if (this.queue.length > 0) {
       const rows = Array.from(this.queue)
       this.queue.length = 0
-      
+
       const data = rows.map((row) => [
-        {index: {_index: this.opts.index || `moleculer-${row.ts.yyyymmdd()}`, pipeline: this.opts.pipeline}},
+        {
+          index: {
+            _index: this.opts.index || `moleculer-${row.ts.yyyymmdd()}`,
+            pipeline: this.opts.pipeline,
+          },
+        },
         {
           timestamp: row.ts.getTime(),
           level: row.level,
@@ -153,7 +158,7 @@ class ElasticLogger extends BaseLogger {
           namespace: row.bindings.ns,
           service: row.bindings.svc,
           version: row.bindings.ver,
-          
+
           source: this.opts.source,
           tags: [process.env.NODE_ENV],
           hostname: this.opts.hostname,
@@ -161,17 +166,19 @@ class ElasticLogger extends BaseLogger {
       ])
       const operations = _.flatten(data)
       return this.client
-        .bulk({refresh: true, operations})
+        .bulk({ refresh: true, operations })
         .then((res) => {
           if (res.errors) {
             console.info(`Logs are uploaded to ELK server, but has errors: ${res.errors}`)
+            const errorDocs = res.items.filter((doc) => doc.index.status > 300)
+            console.log({ errorDocs: JSON.stringify(errorDocs, null, 2) })
           }
         })
         .catch((err) => {
           console.warn(`Unable to upload logs to ELK server. Error:${err.message}`, err)
         })
     }
-    
+
     return this.broker.Promise.resolve()
   }
 }
