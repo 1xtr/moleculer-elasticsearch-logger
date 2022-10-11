@@ -107,8 +107,6 @@ class ElasticLogger extends BaseLogger {
    * @param {object} bindings
    */
   getLogHandler(bindings) {
-    if (this.opts.excludeModules.includes(bindings.mod)) return null
-
     const level = bindings ? this.getLogLevel(bindings.mod) : null
     if (!level) return null
 
@@ -124,6 +122,8 @@ class ElasticLogger extends BaseLogger {
     return (type, args) => {
       const typeIdx = BaseLogger.LEVELS.indexOf(type)
       if (typeIdx > levelIdx) return
+      // allow only `error` and `fatal` from broker
+      if (this.opts.excludeModules.includes(bindings.mod) && !(bindings.mod === 'broker' && typeIdx <= 1)) return
 
       this.queue.push({
         ts: new Date(),
