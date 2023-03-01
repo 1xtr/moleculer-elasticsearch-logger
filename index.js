@@ -31,6 +31,19 @@ Date.prototype.yyyymmdd = function () {
   return [this.getFullYear(), (mm > 9 ? '' : '0') + mm, (dd > 9 ? '' : '0') + dd].join('')
 }
 
+const replacerFunc = () => {
+  const visited = new WeakSet()
+  return (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (visited.has(value)) {
+        return
+      }
+      visited.add(value)
+    }
+    return value
+  }
+}
+
 /**
  * ElasticLogger logger for Moleculer
  * send logs directly to elastic
@@ -82,7 +95,7 @@ class ElasticLogger extends BaseLogger {
 
     this.objectPrinter = this.opts.objectPrinter
       ? this.opts.objectPrinter
-      : (o) => JSON.stringify(o, null, 2)
+      : (o) => JSON.stringify(o, replacerFunc())
 
     if (this.opts.interval > 0) {
       this.timer = setInterval(() => this.flush(), this.opts.interval)
