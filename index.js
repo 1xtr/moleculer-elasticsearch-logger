@@ -95,7 +95,7 @@ class ElasticLogger extends BaseLogger {
 
     this.objectPrinter = this.opts.objectPrinter
       ? this.opts.objectPrinter
-      : (o) => JSON.stringify(o, replacerFunc())
+      : (o) => JSON.stringify(o, replacerFunc(), 2)
 
     if (this.opts.interval > 0) {
       this.timer = setInterval(() => this.flush(), this.opts.interval)
